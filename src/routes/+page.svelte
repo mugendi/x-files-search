@@ -3,8 +3,10 @@
 	import { fade } from 'svelte/transition';
 	import dirIcon from '../lib/images/icons/dir.svg?raw';
 	import fileIcon from '../lib/images/icons/file.svg?raw';
+	import sortIcon from '../lib/images/icons/sort.svg';
 	import loadingSVG from '../lib/images/loading.svg?raw';
 	import logoImg from '../lib/images/logo-w-text.png';
+	import { onMount } from 'svelte';
 
 	let timeoutInt: number;
 	let searchResults: object = {};
@@ -12,6 +14,8 @@
 	let query: string | null = null;
 	let searchEl;
 	let isBusy: boolean = false;
+	let isReady: boolean = false;
+	let sortOrder = 'modified:desc';
 
 	function setLangauge(lang: string) {
 		if (selectedLang == lang) {
@@ -42,7 +46,7 @@
 			}
 		}
 
-		if (queryArr.length) {
+		if (queryObj.q && queryArr.length) {
 			let url = '/api/directory?' + queryArr.join('&');
 			// searchResults = {};
 			isBusy = true;
@@ -60,10 +64,18 @@
 		return data;
 	}
 
-	$: {
-		let queryObj = { q: query, lang: selectedLang };
+	onMount(() => {
+		isReady = true;
+	});
+
+	$: if (isReady) {
+		let queryObj = { q: query, lang: selectedLang, sort: sortOrder };
+
+		console.log({ queryObj });
 		searchFiles(queryObj);
 	}
+
+	// $:console.log({sortOrder});
 </script>
 
 <svelte:head>
@@ -111,21 +123,33 @@
 	{#if searchResults.hits && searchResults.hits.length}
 		<div class="results" transition:fade={{ delay: 250, duration: 300 }}>
 			<div class="found">
-				<h4>
-					{formatNumber(searchResults.found)} Total Results Found / {formatNumber(
-						searchResults.out_of
-					)} indexed.
-				</h4>
+				<div class="results-stats">
+					<h4>
+						{formatNumber(searchResults.found)} Total Results Found / {formatNumber(
+							searchResults.out_of
+						)} indexed.
+					</h4>
 
+					<div>
+						<span class="flex-mid small">
+							<img src={sortIcon} height="20" alt="" />&nbsp;Modification Date
+						</span>
+						<select bind:value={sortOrder}>
+							<option value="modified:asc">Ascending</option>
+							<option value="modified:desc">Descending</option>
+						</select>
+					</div>
+				</div>
 				<div class="small facets">
-					<div class="by">LANGUAGE:</div>
+					<!-- <div class="by">LANGUAGE:</div> -->
 					<div class="type">
-						{#each searchResults.facet_counts[0].counts as { value, count }}
-							<button class="small" on:click={() => setLangauge(value)}
-								>{value}: {formatNumber(count)}
-							</button>
-						{/each}
-
+						<div>
+							{#each searchResults.facet_counts[0].counts as { value, count }}
+								<button class="small" on:click={() => setLangauge(value)}
+									>{value}: {formatNumber(count)}
+								</button>
+							{/each}
+						</div>
 						{#if selectedLang && !isBusy}
 							<span> &nbsp; 👈 Click to clear <strong>"{selectedLang}"</strong> filter</span>
 						{/if}
@@ -145,20 +169,22 @@
 								{/if}
 							</span>
 
-							<button
-								class="small"
-								on:click={() => open('open-dir', document.file)}
-								title="Open Containing Directory"
-							>
-								{@html dirIcon}
-							</button>
-							<button
-								class="small"
-								on:click={() => open('open-file', document.file)}
-								title="Open File"
-							>
-								{@html fileIcon}
-							</button>
+							<span>
+								<button
+									class="small"
+									on:click={() => open('open-dir', document.file)}
+									title="Open Containing Directory"
+								>
+									{@html dirIcon}
+								</button>
+								<button
+									class="small"
+									on:click={() => open('open-file', document.file)}
+									title="Open File"
+								>
+									{@html fileIcon}
+								</button>
+							</span>
 						</div>
 
 						{#if highlight.source?.snippet}
@@ -178,7 +204,11 @@
 			max-width: 70%;
 		}
 	}
-
+	.flex-mid {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 	input {
 		font-size: 1.5em;
 
@@ -199,12 +229,29 @@
 	.results {
 		display: flex;
 		flex-direction: column;
-		gap: 0.15em 0;
+		gap: 0.15em;
 		margin: 20px 0 10px;
 		border: 1px solid #ddd;
 		background: #f8f8f8;
 		padding: 10px;
 		border-radius: 10px;
+
+		.results-stats {
+			display: flex;
+			justify-content: space-between;
+			gap: 0.15em;
+
+			select {
+				padding: 5px;
+				border: 1px solid #aaa;
+				border-radius: 4px;
+				resize: vertical;
+				border-radius: 10px;
+				font-size: 0.8em;
+				margin-top: 10px;
+				width: 100%;
+			}
+		}
 
 		.facets {
 			display: flex;
@@ -231,6 +278,7 @@
 
 				button {
 					cursor: pointer;
+					margin: 2px;
 				}
 			}
 		}
@@ -252,12 +300,14 @@
 					// border-bottom: 1px solid #ddd;
 					padding-bottom: 10px;
 					display: flex;
-					align-items: center;
 					justify-content: space-between;
-					gap: 0.2em;
+					gap: 0.1em;
 
 					.file-path {
 						flex: 1;
+						text-wrap: wrap;
+						overflow-x: auto;
+						// font-size: .8em;
 					}
 				}
 				pre {

@@ -21,8 +21,8 @@
 				<a href="/">Home</a>
 			</li>
 
-			<li aria-current={$page.url.pathname.startsWith('/stats') ? 'page' : undefined}>
-				<a href="/stats">Stats</a>
+			<li aria-current={$page.url.pathname.startsWith('/settings') ? 'page' : undefined}>
+				<a href="/settings">Settings</a>
 			</li>
 		</ul>
 		<svg viewBox="0 0 2 3" aria-hidden="true">

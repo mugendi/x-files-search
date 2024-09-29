@@ -17,6 +17,9 @@ const indexer = new Indexer();
 export async function GET({ params, url }) {
   let q = url.searchParams.get('q');
   let language = url.searchParams.get('lang');
+  let sort = url.searchParams.get('sort');
+
+  // console.log({ sort });
 
   if (q && q.length > 2) {
     // while (true) {
@@ -38,10 +41,11 @@ export async function GET({ params, url }) {
           'language',
         ],
 
-        highlight_fields: [ 'source'],
+        highlight_fields: ['source'],
         facet_by: 'language',
-        // sort_by: 'size:desc',
-        //
+        sort_by: sort || 'modified:desc',
+
+        remote_embedding_timeout_ms: 60000,
         limit: 100,
       };
 
