@@ -8,7 +8,7 @@
 <script>
     export let totalItems = 0;
     export let itemsPerPage = 10;
-    export let pagesShown = 5;
+    export let pagesShown = 4;
     export let currentPage = 1;
   
     export let startItem;
@@ -84,7 +84,7 @@
       display: flex;
       justify-content: end;
     }
-    
+
     .pagination {
       display: flex;
       list-style-type: none;
