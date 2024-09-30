@@ -1,16 +1,19 @@
 <script lang="ts">
-	import { formatDate, formatNumber, highlightMatch } from '$lib/utils';
+	import { formatDate, formatNumber, highlightMatch, isLocalhost } from '$lib/utils';
 	import { fade } from 'svelte/transition';
-	import dirIcon from '../lib/images/icons/dir.svg?raw';
-	import fileIcon from '../lib/images/icons/file.svg?raw';
-	import sortIcon from '../lib/images/icons/sort.svg';
-	import loadingSVG from '../lib/images/loading.svg?raw';
-	import findImg from '../lib/images/icons/find.svg';
-	import logoImg from '../lib/images/logo-w-text.png';
+	import dirIcon from '$lib/images/icons/dir.svg?raw';
+	import fileIcon from '$lib/images/icons/file.svg?raw';
+	import codeIcon from '$lib/images/icons/code.svg?raw';
+	import sortIcon from '$lib/images/icons/sort.svg';
+	import loadingSVG from '$lib/images/loading.svg?raw';
+	import findIcon from '$lib/images/icons/find.svg?raw';
+	import findImg from '$lib/images/icons/find.svg';
+	import logoImg from '$lib/images/logo-w-text.png';
 	import { onMount } from 'svelte';
 	import Pagination from '../components/Pagination.svelte';
+	import Popup from '../components/Popup.svelte';
 
-	let timeoutInt: number;
+	// let timeoutInt: number;
 	let searchResults: object = {};
 	let selectedLang: string | null = null;
 	let query: string | null = null;
@@ -20,6 +23,14 @@
 	let sortOrder = 'modified:desc';
 	let currentPage = 1;
 	let itemsPerPage = 20;
+	let isLocal = true;
+
+	let previewSource: string | null = null;
+	let previewLanguage: string | null = null;
+	let previewSize: string | null = null;
+	let previewFileSize: string | null = null;
+	let fetchingSource: string | null = null;
+	let searchQuery = '';
 
 	function setLangauge(lang: string) {
 		if (selectedLang == lang) {
@@ -29,15 +40,10 @@
 		}
 	}
 
-	async function search(event: Event) {
-		// debounce input events by 1 second
-		clearInterval(timeoutInt);
-		timeoutInt = setTimeout(async () => {
-			let val: string | null = event.target?.value;
-			if (val && val.length > 2) {
-				query = val;
-			}
-		}, 1000);
+	async function search(val: string) {
+		if (val.length > 2) {
+			query = val;
+		}
 	}
 
 	async function searchFiles(queryObj: object) {
@@ -48,7 +54,6 @@
 
 		for (let k in queryObj) {
 			val = String(queryObj[k] || '');
-
 			if (val.length > 0) {
 				queryArr.push(`${k}=${encodeURIComponent(queryObj[k])}`);
 			}
@@ -69,15 +74,44 @@
 		}
 	}
 
-	async function open(action: string, path: string) {
+	async function open(action: string, doc: object) {
+		let path = doc.file;
+
+		isBusy = true;
+
+		if (action == 'view-source') {
+			fetchingSource = path;
+		}
+
+		// let language = doc.language;
+		previewSource = null;
+		previewSize = null;
+
 		let url = '/api/open?action=' + action + '&path=' + path;
 		let resp = await fetch(url);
-		let data = await resp.json();
-		return data;
+		let respData = await resp.json();
+
+		isBusy = false;
+
+		// show source
+		if (respData.source) {
+			previewSize = respData.previewSize || respData.fileSize;
+			previewFileSize = respData.fileSize;
+			previewLanguage = doc.language == 'Unknown' ? null : doc.language;
+
+			previewSource = `<pre><code class="language-${
+				previewLanguage || 'text'
+			}">' ${respData.source} </code></pre>`;
+		}
+
+		if (action == 'view-source') {
+			fetchingSource = null;
+		}
 	}
 
 	onMount(() => {
 		isReady = true;
+		isLocal = isLocalhost(window.location.hostname);
 	});
 
 	$: if (isReady) {
@@ -92,12 +126,26 @@
 		searchFiles(queryObj);
 	}
 
-	// $: console.log({ currentPage });
+	$: console.log({ previewSource, previewSize, previewFileSize });
 </script>
 
 <svelte:head>
 	<title>X-Files-Search</title>
 	<meta name="description" content="The amazing indexer for files on your system!" />
+
+	<!-- Highligh JS -->
+	<link
+		rel="stylesheet"
+		href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/default.min.css"
+	/>
+	<script
+		src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"
+	></script>
+
+	<!-- and it's easy to individually load additional languages -->
+	<script
+		src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/go.min.js"
+	></script>
 </svelte:head>
 
 <div class="text-column" class:wide={searchResults.hits}>
@@ -108,23 +156,29 @@
 			<img src={logoImg} alt="" />
 		</div>
 	{/if}
+	<form on:submit|preventDefault={() => search(searchEl.value)}>
+		<div class="field">
+			<div class="input">
+				<input
+					type="text"
+					placeholder={isReady ? 'Search local files' : 'Initializing...'}
+					bind:this={searchEl}
+					disabled={!isReady || isBusy}
+					bind:value={searchQuery}
+				/>
 
-	<div class="field">
-		<input
-			type="text"
-			on:input={search}
-			placeholder={isReady ? 'Search your local files' : 'Getting Search Ready...'}
-			bind:this={searchEl}
-			disabled={!isReady || isBusy}
-		/>
-		<!-- <button>Search</button> -->
+				{#if isBusy || !isReady}
+					<span class="loading" transition:fade={{ delay: 0, duration: 200 }}>
+						{@html loadingSVG}
+					</span>
+				{/if}
+			</div>
 
-		{#if isBusy || !isReady}
-			<span class="loading" transition:fade={{ delay: 0, duration: 200 }}>
-				{@html loadingSVG}
-			</span>
-		{/if}
-	</div>
+			<button disabled={!searchQuery || !isReady || isBusy}>
+				{@html findIcon}
+			</button>
+		</div>
+	</form>
 
 	{#if searchResults.hits && searchResults.hits.length}
 		<Pagination totalItems={searchResults.found} {itemsPerPage} bind:currentPage></Pagination>
@@ -180,27 +234,49 @@
 								</div>
 
 								<div>
+									<strong>Language:</strong>
+									{document.language}
+								</div>
+								<div>
 									<strong>Modified:</strong>
 									{formatDate(document.modified * 1000)}
 								</div>
+
+								{#if fetchingSource == document.file}
+									<p transition:fade={{ delay: 0, duration: 200 }}>
+										{@html loadingSVG} Fetching...
+									</p>
+								{/if}
 							</span>
 
-							<span>
+							<div>
 								<button
 									class="small"
-									on:click={() => open('open-dir', document.file)}
-									title="Open Containing Directory"
+									on:click={() => open('view-source', document)}
+									title="View Source"
+									disabled={isBusy}
 								>
-									{@html dirIcon}
+									{@html codeIcon}
 								</button>
-								<button
-									class="small"
-									on:click={() => open('open-file', document.file)}
-									title="Open File"
-								>
-									{@html fileIcon}
-								</button>
-							</span>
+								{#if isLocal}
+									<button
+										class="small"
+										on:click={() => open('open-dir', document)}
+										title="Open Containing Directory"
+										disabled={isBusy}
+									>
+										{@html dirIcon}
+									</button>
+									<button
+										class="small"
+										on:click={() => open('open-file', document)}
+										title="Open File"
+										disabled={isBusy}
+									>
+										{@html fileIcon}
+									</button>
+								{/if}
+							</div>
 						</div>
 
 						{#if highlight.source?.snippet}
@@ -223,12 +299,36 @@
 	{/if}
 </div>
 
+<!-- Code Preview Popup -->
+<Popup show={!!previewSource} onShow={() => hljs.highlightAll()}>
+	{#if previewSize}
+		<div class="preview-stats small">
+			{previewSize} of {previewFileSize} Previewed 👇
+		</div>
+	{/if}
+
+	<pre>
+		<code class="language-{previewLanguage || 'text'}">
+		{previewSource} 
+	</code>
+	</pre>
+</Popup>
+
 <style lang="scss">
 	.page-logo {
 		text-align: center;
 		img {
 			max-width: 70%;
 		}
+	}
+	.preview-stats {
+		padding: 5px 0;
+		text-align: right;
+	}
+	pre {
+		border-top: 1px solid #eee;
+		text-wrap: wrap;
+		margin: 0;
 	}
 	.flex-mid {
 		display: flex;
@@ -237,10 +337,16 @@
 	}
 	input {
 		font-size: 1.5em;
+		flex: 1;
 
 		&:focus {
 			outline-color: #ff156d;
 		}
+	}
+
+	.input {
+		position: relative;
+		flex: 1;
 	}
 	.loading {
 		position: absolute;
@@ -339,11 +445,6 @@
 						padding: 5px;
 						border-radius: 10px;
 					}
-				}
-				pre {
-					border-top: 1px solid #eee;
-					text-wrap: wrap;
-					margin: 0;
 				}
 			}
 		}

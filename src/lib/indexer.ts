@@ -60,7 +60,7 @@ export class Indexer {
 
     this.db.createCollection(filesShema, { drop });
     this.db.createCollection(dirsSchema, { drop });
-    // console.log('>>>>>');
+
   }
 
   async addDir(directory: string) {

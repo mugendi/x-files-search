@@ -88,9 +88,11 @@ pre {
 
 .field {
   display: flex;
+  justify-content: stretch;
   position: relative;
   margin: 0.5em 0;
   gap: 0.5em;
+  width: 100%;
 }
 
 input,
@@ -149,7 +151,7 @@ button.small {
   border-radius: 5px;
 }
 
-button:hover {
+/* button:hover {
   background: #f6f9fe;
   color: #174ea6;
 }
@@ -159,12 +161,9 @@ button:active {
     0 4px 4px 0 rgb(60 64 67 / 30%),
     0 8px 12px 6px rgb(60 64 67 / 15%);
   outline: none;
-}
+} */
 
-button:focus {
-  outline: none;
-  border: 2px solid #4285f4;
-}
+
 
 button:not(:disabled) {
   box-shadow:
@@ -191,9 +190,15 @@ button:not(:disabled):active {
 }
 
 button:disabled {
+  color: #999;
+  background: #f5f5f5;
   box-shadow:
-    rgba(60, 64, 67, 0.3) 0 1px 3px 0,
-    rgba(60, 64, 67, 0.15) 0 4px 8px 3px;
+    rgba(60, 64, 67, 0.3) 0 1px 1px 0
+}
+
+button:disabled svg path {
+  stroke: #999;
+  /* fill: #999; */
 }
 
 svg {

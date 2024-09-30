@@ -47,3 +47,17 @@ export function highlightMatch(text, match) {
 export function formatDate(date) {
   return new Date(date).toLocaleString();
 }
+
+export function isLocalhost(hostname) {
+  // List of known localhost hostnames and IP ranges
+  const localhosts = ['localhost', '127.0.0.1', '::1', '0:0:0:0:0:0:0:1'];
+
+  // IPv4 localhost range (127.0.0.0 to 127.255.255.255)
+  const ipv4LocalhostRegex =
+    /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/;
+
+  // Convert hostname to lowercase for case-insensitive comparison
+  hostname = hostname.toLowerCase();
+
+  return localhosts.includes(hostname) || ipv4LocalhostRegex.test(hostname);
+}
