@@ -15,7 +15,7 @@ import util from 'util';
 const indexer = new Indexer();
 
 export async function GET({ params, url }) {
-  let q = url.searchParams.get('q');
+  let q = url.searchParams.get('q') || '';
   let language = url.searchParams.get('lang');
   let sort = url.searchParams.get('sort');
   let limit = url.searchParams.get('limit');
@@ -23,68 +23,52 @@ export async function GET({ params, url }) {
 
   // console.log({ sort });
 
-  if (q && q.length > 2) {
-    // while (true) {
-    try {
-      let searchParameters = {
-        q,
-        collections: 'local_files',
+  // while (true) {
+  try {
+    let searchParameters = {
+      q,
+      collections: 'local_files',
 
-        query_by: ['source', 'text', 'path'],
-        query_by_weights: '3,2,1',
+      query_by: ['source', 'text', 'path'],
+      query_by_weights: '3,2,1',
 
-        include_fields: [
-          'ext',
-          'file',
-          'size',
-          // 'text',
-          'created',
-          'modified',
-          'language',
-        ],
+      include_fields: [
+        'ext',
+        'file',
+        'size',
+        // 'text',
+        'created',
+        'modified',
+        'language',
+      ],
 
-        highlight_fields: ['source'],
-        facet_by: 'language',
-        sort_by: sort || 'modified:desc',
+      highlight_fields: ['source'],
+      facet_by: 'language',
+      sort_by: sort || 'modified:desc',
 
-        remote_embedding_timeout_ms: 60000,
-        limit: limit || 20,
-        page: page || 1,
-      };
+      remote_embedding_timeout_ms: 60000,
+      limit: limit || 20,
+      page: page || 1,
+    };
 
-      if (language) {
-        searchParameters.filter_by = `language:=${language}`;
-      }
-
-      // console.log(searchParameters)
-
-      let resp = await indexer.db.client
-        .collections(['local_files'])
-        .documents()
-        .search(searchParameters);
-
-      // resp = await indexer.db.client.collections('local_files').retrieve();
-
-      // console.log(util.inspect(resp, { colors: true, depth: 6 }));
-      return json(resp);
-    } catch (error) {
-      console.error(error);
+    if (language) {
+      searchParameters.filter_by = `language:=${language}`;
     }
 
-    //   await delay(100);
-    // }
+    // console.log(searchParameters)
 
-    // console.log(resp);
+    let resp = await indexer.db.client
+      .collections(['local_files'])
+      .documents()
+      .search(searchParameters);
+
+    // resp = await indexer.db.client.collections('local_files').retrieve();
+
+    // console.log(util.inspect(resp, { colors: true, depth: 6 }));
+    return json(resp);
+  } catch (error) {
+    console.error(error);
   }
-
-  // console.log(event.request, Object.keys(event.request));
-
-  // const options: ResponseInit = {
-  //   status: 418,
-  //   headers: {
-  //     X: 'Gon give it to ya',
-  //   },
-  // };
 
   // return new Response('Hello', {});
 }

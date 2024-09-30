@@ -140,4 +140,31 @@ export class DB {
 
     return resp;
   }
+
+
+  async stats(
+    collections: Array<String> = [],
+    q: string = '',
+    {
+      query_by = ['text', 'path'],
+      facet_by = 'ext',
+      sort_by = 'size:desc',
+    }: SearchParams
+  ) {
+    let searchParameters = {
+      q,
+      query_by,
+      facet_by,
+      sort_by,
+      collections,
+    };
+
+    let resp = await this.client
+      .collections(collections)
+      .documents()
+      .search(searchParameters);
+
+    return resp;
+  }
+  
 }

@@ -13,12 +13,14 @@
 	import Pagination from '../components/Pagination.svelte';
 	import Popup from '../components/Popup.svelte';
 	import bytes from 'bytes';
+	import Facets from '../components/Facets.svelte';
 
 	// let timeoutInt: number;
 	let searchResults: object = {};
+	let statsResults: object = {};
 	let selectedLang: string | null = null;
 	let query: string | null = null;
-	let searchEl;
+	let searchEl: HTMLInputElement;
 	let isBusy: boolean = false;
 	let isReady: boolean = false;
 	let sortOrder = 'modified:desc';
@@ -30,14 +32,6 @@
 
 	let fetchingSource: string | null = null;
 	let searchQuery = '';
-
-	function setLangauge(lang: string) {
-		if (selectedLang == lang) {
-			selectedLang = null;
-		} else {
-			selectedLang = lang;
-		}
-	}
 
 	async function search(val: string) {
 		if (val.length > 2) {
@@ -58,18 +52,15 @@
 			}
 		}
 
-		// console.log(queryObj);
-		// console.log(queryArr);
-
-		if (queryObj.q && queryArr.length) {
+		if ((queryObj.q && queryArr.length) || selectedLang || searchResults.hits) {
 			let url = '/api/directory?' + queryArr.join('&');
-			// console.log('URL', url);
+			console.log('URL', url);
 			// searchResults = {};
 			isBusy = true;
 			let resp = await fetch(url);
 			searchResults = await resp.json();
 			isBusy = false;
-			// console.log(searchResults);
+			console.log(searchResults);
 		}
 	}
 
@@ -98,10 +89,7 @@
 			preview.file = doc.file;
 			preview.fileSize = respData.fileSize;
 			preview.language = doc.language == 'Unknown' ? null : doc.language;
-
-			preview.source = `<pre><code class="language-${
-				preview.language || 'text'
-			}">' ${respData.source} </code></pre>`;
+			preview.source = respData.source;
 		}
 
 		if (action == 'view-source') {
@@ -109,9 +97,20 @@
 		}
 	}
 
+	async function getStats() {
+		// statsResults
+		let url = '/api/stats?';
+		// console.log('URL', url);
+		// searchResults = {};
+		// isBusy = true;
+		let resp = await fetch(url);
+		statsResults = await resp.json();
+	}
+
 	onMount(() => {
 		isReady = true;
 		isLocal = isLocalhost(window.location.hostname);
+		getStats();
 	});
 
 	$: if (isReady) {
@@ -122,11 +121,13 @@
 			limit: itemsPerPage,
 			page: currentPage
 		};
+
 		// console.log({ queryObj });
 		searchFiles(queryObj);
 	}
 
 	// $: console.log({ preview.source, preview.size, preview.fileSize });
+	// $: console.log(statsResults);
 </script>
 
 <svelte:head>
@@ -180,6 +181,10 @@
 		</div>
 	</form>
 
+	{#if !statsResults.facets && !searchResults.hits}
+		<Facets results={statsResults} asStats={true} bind:selectedLang />
+	{/if}
+
 	{#if searchResults.hits && searchResults.hits.length}
 		<Pagination totalItems={searchResults.found} {itemsPerPage} bind:currentPage></Pagination>
 
@@ -203,21 +208,8 @@
 						</select>
 					</div>
 				</div>
-				<div class="small facets">
-					<!-- <div class="by">LANGUAGE:</div> -->
-					<div class="type">
-						<div>
-							{#each searchResults.facet_counts[0].counts as { value, count }}
-								<button class="small" on:click={() => setLangauge(value)}
-									>{value}: {formatNumber(count)}
-								</button>
-							{/each}
-						</div>
-						{#if selectedLang && !isBusy}
-							<span> &nbsp; 👈 Click to clear <strong>"{selectedLang}"</strong> filter</span>
-						{/if}
-					</div>
-				</div>
+
+				<Facets results={searchResults} bind:selectedLang />
 			</div>
 
 			<div class="hits small">
@@ -302,18 +294,20 @@
 
 <!-- Code Preview Popup -->
 <Popup show={!!preview.source} onShow={() => window.hljs.highlightAll()}>
-	{#if preview.size}
-		<div class="small preview-stats">
-			<div><strong>File: </strong>{preview.file}</div>
-			<strong>Previewed: </strong>{preview.size} of {preview.fileSize}
-		</div>
-	{/if}
+	<div>
+		{#if preview.size}
+			<div class="small preview-stats">
+				<div><strong>File: </strong>{preview.file}</div>
+				<strong>Previewed: </strong>{preview.size} of {preview.fileSize}
+			</div>
+		{/if}
 
-	<pre>
-		<code class="language-{preview.language || 'text'}">
-		{preview.source} 
-	</code>
+		<pre>
+			<code class="language-{preview.language || 'text'}">
+				{@html preview.source}
+			</code>
 	</pre>
+	</div>
 </Popup>
 
 <style lang="scss">
@@ -387,30 +381,6 @@
 				font-size: 0.8em;
 				width: 100%;
 				margin-left: 5px;
-			}
-		}
-
-		.facets {
-			display: flex;
-			flex-direction: row;
-			margin: 10px 0 10px;
-			align-items: center;
-
-			gap: 0.25em;
-			padding: 1em 0;
-			margin: 1em 0;
-			border-top: 1px solid #ddd;
-			border-bottom: 1px solid #ddd;
-
-			.type {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 0.2em;
-
-				button {
-					cursor: pointer;
-					margin: 2px;
-				}
 			}
 		}
 
