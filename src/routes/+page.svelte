@@ -12,6 +12,7 @@
 	import { onMount } from 'svelte';
 	import Pagination from '../components/Pagination.svelte';
 	import Popup from '../components/Popup.svelte';
+	import bytes from 'bytes';
 
 	// let timeoutInt: number;
 	let searchResults: object = {};
@@ -25,10 +26,8 @@
 	let itemsPerPage = 20;
 	let isLocal = true;
 
-	let previewSource: string | null = null;
-	let previewLanguage: string | null = null;
-	let previewSize: string | null = null;
-	let previewFileSize: string | null = null;
+	let preview: object = {};
+
 	let fetchingSource: string | null = null;
 	let searchQuery = '';
 
@@ -70,7 +69,7 @@
 			let resp = await fetch(url);
 			searchResults = await resp.json();
 			isBusy = false;
-			console.log(searchResults);
+			// console.log(searchResults);
 		}
 	}
 
@@ -84,8 +83,8 @@
 		}
 
 		// let language = doc.language;
-		previewSource = null;
-		previewSize = null;
+		preview.source = null;
+		preview.size = null;
 
 		let url = '/api/open?action=' + action + '&path=' + path;
 		let resp = await fetch(url);
@@ -95,12 +94,13 @@
 
 		// show source
 		if (respData.source) {
-			previewSize = respData.previewSize || respData.fileSize;
-			previewFileSize = respData.fileSize;
-			previewLanguage = doc.language == 'Unknown' ? null : doc.language;
+			preview.size = respData.previewSize || respData.fileSize;
+			preview.file = doc.file;
+			preview.fileSize = respData.fileSize;
+			preview.language = doc.language == 'Unknown' ? null : doc.language;
 
-			previewSource = `<pre><code class="language-${
-				previewLanguage || 'text'
+			preview.source = `<pre><code class="language-${
+				preview.language || 'text'
 			}">' ${respData.source} </code></pre>`;
 		}
 
@@ -126,8 +126,7 @@
 		searchFiles(queryObj);
 	}
 
-	// $: console.log({ previewSource, previewSize, previewFileSize });
-
+	// $: console.log({ preview.source, preview.size, preview.fileSize });
 </script>
 
 <svelte:head>
@@ -193,13 +192,11 @@
 						)} indexed.
 					</h4>
 
-					<div>
-						<span class="flex-mid small">
-							<img src={sortIcon} height="20" alt="" />&nbsp;Modification Date
-						</span>
+					<div class="flex-mid small">
+						<span>SORT</span>
 						<select bind:value={sortOrder}>
-							<option value="modified:asc">Ascending</option>
-							<option value="modified:desc">Descending</option>
+							<option value="modified:asc">Earliest First</option>
+							<option value="modified:desc">Latest First</option>
 						</select>
 					</div>
 				</div>
@@ -235,10 +232,10 @@
 								</div>
 
 								<div>
+									<strong>Size:</strong>
+									{bytes(document.size)} |
 									<strong>Language:</strong>
-									{document.language}
-								</div>
-								<div>
+									{document.language} |
 									<strong>Modified:</strong>
 									{formatDate(document.modified * 1000)}
 								</div>
@@ -291,7 +288,7 @@
 		<Pagination totalItems={searchResults.found} {itemsPerPage} bind:currentPage></Pagination>
 	{:else if searchResults.found === 0}
 		<div class="flex-mid" style:margin="1em 0">
-			<img src={findImg} height="100px" />
+			<img src={findImg} height="100px" alt="no data" />
 			<div>
 				<h4>No files match that query and/or filters</h4>
 				<p>We couldn't find a ting!! Please search more broadly!</p>
@@ -301,16 +298,17 @@
 </div>
 
 <!-- Code Preview Popup -->
-<Popup show={!!previewSource} onShow={() => hljs.highlightAll()}>
-	{#if previewSize}
-		<div class="preview-stats small">
-			{previewSize} of {previewFileSize} Previewed 👇
+<Popup show={!!preview.source} onShow={() => window.hljs.highlightAll()}>
+	{#if preview.size}
+		<div class="small preview-stats">
+			<div><strong>File: </strong>{preview.file}</div>
+			<strong>Previewed: </strong>{preview.size} of {preview.fileSize}
 		</div>
 	{/if}
 
 	<pre>
-		<code class="language-{previewLanguage || 'text'}">
-		{previewSource} 
+		<code class="language-{preview.language || 'text'}">
+		{preview.source} 
 	</code>
 	</pre>
 </Popup>
@@ -324,7 +322,6 @@
 	}
 	.preview-stats {
 		padding: 5px 0;
-		text-align: right;
 	}
 	pre {
 		border-top: 1px solid #eee;
@@ -381,8 +378,8 @@
 				resize: vertical;
 				border-radius: 10px;
 				font-size: 0.8em;
-				margin-top: 10px;
 				width: 100%;
+				margin-left: 5px;
 			}
 		}
 
@@ -397,12 +394,6 @@
 			margin: 1em 0;
 			border-top: 1px solid #ddd;
 			border-bottom: 1px solid #ddd;
-
-			.by {
-				height: 100%;
-				font-weight: 560;
-				color: #777;
-			}
 
 			.type {
 				display: flex;
