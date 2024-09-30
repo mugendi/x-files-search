@@ -7,7 +7,7 @@
   --color-bg-0: rgb(202, 216, 228);
   --color-bg-1: hsl(209, 36%, 86%);
   --color-bg-2: hsl(224, 44%, 95%);
-  --color-theme-1: #FF156D;
+  --color-theme-1: #ff156d;
   --color-theme-2: #4075a6;
   --color-text: #603e5f;
   --column-width: 42rem;
@@ -82,6 +82,9 @@ pre {
   justify-content: center;
   margin: 0 auto;
 }
+.text-column.wide {
+  width: 100%;
+}
 
 .field {
   display: flex;
@@ -101,8 +104,6 @@ textarea {
   border-radius: 10px;
   font-size: 1.1em;
 }
-
-
 
 button {
   align-items: center;
@@ -143,7 +144,7 @@ button {
 }
 
 button.small {
-  font-size: .7em;
+  font-size: 0.7em;
   padding: 2px 8px;
   border-radius: 5px;
 }
@@ -195,8 +196,8 @@ button:disabled {
     rgba(60, 64, 67, 0.15) 0 4px 8px 3px;
 }
 
-svg{
-	height: 16px;
+svg {
+  height: 16px;
 }
 
 @media (min-width: 720px) {
