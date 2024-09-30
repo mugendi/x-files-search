@@ -7,6 +7,7 @@
 	import loadingSVG from '../lib/images/loading.svg?raw';
 	import logoImg from '../lib/images/logo-w-text.png';
 	import { onMount } from 'svelte';
+	import Pagination from '../components/Pagination.svelte';
 
 	let timeoutInt: number;
 	let searchResults: object = {};
@@ -16,6 +17,8 @@
 	let isBusy: boolean = false;
 	let isReady: boolean = false;
 	let sortOrder = 'modified:desc';
+	let currentPage = 1;
+	let itemsPerPage = 20;
 
 	function setLangauge(lang: string) {
 		if (selectedLang == lang) {
@@ -38,16 +41,24 @@
 
 	async function searchFiles(queryObj: object) {
 		// console.log(query, selectedLang);
+
 		let queryArr = [];
+		let val: string;
 
 		for (let k in queryObj) {
-			if (queryObj[k] && queryObj[k].length > 1) {
+			val = String(queryObj[k] || '');
+
+			if (val.length > 0) {
 				queryArr.push(`${k}=${encodeURIComponent(queryObj[k])}`);
 			}
 		}
 
+		// console.log(queryObj);
+		// console.log(queryArr);
+
 		if (queryObj.q && queryArr.length) {
 			let url = '/api/directory?' + queryArr.join('&');
+			console.log('URL', url);
 			// searchResults = {};
 			isBusy = true;
 			let resp = await fetch(url);
@@ -69,12 +80,18 @@
 	});
 
 	$: if (isReady) {
-		let queryObj = { q: query, lang: selectedLang, sort: sortOrder };
+		let queryObj = {
+			q: query,
+			lang: selectedLang,
+			sort: sortOrder,
+			limit: itemsPerPage,
+			page: currentPage
+		};
 		// console.log({ queryObj });
 		searchFiles(queryObj);
 	}
 
-	// $:console.log({sortOrder});
+	// $: console.log({ currentPage });
 </script>
 
 <svelte:head>
@@ -82,10 +99,8 @@
 	<meta name="description" content="The amazing indexer for files on your system!" />
 </svelte:head>
 
-<div class="text-column">
+<div class="text-column" class:wide={searchResults.hits}>
 	<!-- <h1>Search Your Files</h1> -->
-
-
 
 	{#if !searchResults.hits}
 		<div class="page-logo" transition:fade={{ delay: 250, duration: 300 }}>
@@ -111,6 +126,8 @@
 	</div>
 
 	{#if searchResults.hits && searchResults.hits.length}
+		<Pagination totalItems={searchResults.found} {itemsPerPage} bind:currentPage></Pagination>
+
 		<div class="results" transition:fade={{ delay: 250, duration: 300 }}>
 			<div class="found">
 				<div class="results-stats">
@@ -192,6 +209,8 @@
 				{/each}
 			</div>
 		</div>
+
+		<Pagination totalItems={searchResults.found} {itemsPerPage} bind:currentPage></Pagination>
 	{/if}
 </div>
 

@@ -18,6 +18,8 @@ export async function GET({ params, url }) {
   let q = url.searchParams.get('q');
   let language = url.searchParams.get('lang');
   let sort = url.searchParams.get('sort');
+  let limit = url.searchParams.get('limit');
+  let page = url.searchParams.get('page');
 
   // console.log({ sort });
 
@@ -46,12 +48,15 @@ export async function GET({ params, url }) {
         sort_by: sort || 'modified:desc',
 
         remote_embedding_timeout_ms: 60000,
-        limit: 100,
+        limit: limit || 20,
+        page: page || 1,
       };
 
       if (language) {
         searchParameters.filter_by = `language:=${language}`;
       }
+
+      console.log(searchParameters)
 
       let resp = await indexer.db.client
         .collections(['local_files'])
