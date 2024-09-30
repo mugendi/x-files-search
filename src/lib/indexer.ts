@@ -128,7 +128,7 @@ export class Indexer {
     let globStream = globbyStream(pattern, config);
 
     let docs = [];
-    let bulkDocs = 50;
+    let bulkDocs = 100;
     let doc;
 
     for await (const filePath of globStream) {
