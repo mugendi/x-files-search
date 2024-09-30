@@ -5,7 +5,7 @@
     "setup": "sh ./bash/typesense.sh",
     "env": "node -r dotenv/config",
     "dev": "vite dev",
-    "prod":"node -r dotenv/config build",
+    "prod": "node -r dotenv/config build",
     "build": "vite build",
     "preview": "run-p setup vite preview",
     "test": "npm run test:integration && npm run test:unit",
