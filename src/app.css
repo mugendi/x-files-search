@@ -76,18 +76,18 @@ pre {
 
 .text-column {
   display: flex;
-  /* max-width: 48rem; */
+  /* max-width: 68rem; */
   flex: 0.6;
   flex-direction: column;
   justify-content: center;
-  /* margin: 0 auto; */
+  margin: 0 auto;
 }
 
 .field {
-  /* display: flex; */
+  display: flex;
   position: relative;
   margin: 0.5em 0;
-  /* gap: 0.5em; */
+  gap: 0.5em;
 }
 
 input,
