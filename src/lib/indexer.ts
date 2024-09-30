@@ -5,6 +5,7 @@
  * https://opensource.org/licenses/MIT
  */
 
+import 'dotenv/config';
 import { DB } from './typesense';
 import sh from 'shorthash';
 import path from 'path';
@@ -22,8 +23,6 @@ import { promises as fs } from 'node:fs';
 
 // const MAX_STRING_LENGTH = Math.ceil(NodeBuffer.constants.MAX_STRING_LENGTH / 5);
 const MAX_FILE_SIZE = bytes('1MB');
-
-// console.log();
 
 export class Indexer {
   isRunning = false;
@@ -105,23 +104,13 @@ export class Indexer {
 
   async globFiles(
     directory: string,
-    negPatterns: Array<string>,
+    ignorePatterns: Array<string> | string,
     skipTypes: Array<string>
   ) {
-    negPatterns = arrify(
-      negPatterns || [
-        '!**/node_modules/**',
-        '!**/.env/**',
-        '!**/venv**',
-        '!**/.venv/**',
-        //   '!**/*.md',
-        //   '!**/*.json',
-        //   '!**/*.yaml',
-        //   '!**/*.yml',
-        '!**/yarn.*',
-        '!**/npm.*',
-        '!**/LICENSE',
-      ]
+
+
+    ignorePatterns = arrify(
+      ignorePatterns || (process.env.IGNORE_PATTERNS || '').split(',')
     );
 
     skipTypes = skipTypes || ['image', 'audio', 'video'];
@@ -130,8 +119,8 @@ export class Indexer {
 
     //   console.log(negPatterns);
 
-    let pattern = [path.join(directory, '**/*'), ...negPatterns];
-    let config = { gitignore: false };
+    let pattern = [path.join(directory, '**/*')];
+    let config = { gitignore: false, ignore: ignorePatterns };
 
     // console.log({ directory, pattern, config });
 
