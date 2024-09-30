@@ -192,8 +192,11 @@
 						)} indexed.
 					</h4>
 
-					<div class="flex-mid small">
-						<span>SORT</span>
+					<div class="sort small">
+						<div class="flex-mid">
+							<img src={sortIcon} alt="sort icon" height="18px" />
+							<span>SORT BY</span>
+						</div>
 						<select bind:value={sortOrder}>
 							<option value="modified:asc">Earliest First</option>
 							<option value="modified:desc">Latest First</option>
@@ -322,6 +325,10 @@
 	}
 	.preview-stats {
 		padding: 5px 0;
+	}
+
+	.sort {
+		text-align: center;
 	}
 	pre {
 		border-top: 1px solid #eee;
