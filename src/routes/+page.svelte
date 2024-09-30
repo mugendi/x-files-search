@@ -203,8 +203,10 @@
 							<span>SORT BY</span>
 						</div>
 						<select bind:value={sortOrder}>
-							<option value="modified:asc">Earliest First</option>
-							<option value="modified:desc">Latest First</option>
+							<option value="modified:desc">Newest First</option>
+							<option value="modified:asc">Oldest First</option>
+							<option value="size:asc">Smallest First</option>
+							<option value="size:desc">Largest First</option>
 						</select>
 					</div>
 				</div>
