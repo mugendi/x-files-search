@@ -96,6 +96,7 @@
 			<button>Add Dir</button>
 		</div>
 	</form> -->
+
 	{#if !query}
 		<div class="page-logo" transition:fade={{ delay: 250, duration: 300 }}>
 			<img src={logoImg} alt="" />
@@ -106,8 +107,9 @@
 		<input
 			type="text"
 			on:input={search}
-			placeholder="Start Typing Your Search..."
+			placeholder="Search your local files"
 			bind:this={searchEl}
+			disabled={!isReady}
 		/>
 		<!-- <button>Search</button> -->
 
@@ -117,7 +119,6 @@
 			</span>
 		{/if}
 	</div>
-	<!-- <button>Index Files</button> -->
 
 	{#if searchResults.hits && searchResults.hits.length}
 		<div class="results" transition:fade={{ delay: 250, duration: 300 }}>
@@ -298,7 +299,7 @@
 		.hits {
 			display: flex;
 			flex-direction: column;
-			gap: .5em;
+			gap: 0.5em;
 
 			.hit {
 				margin: 0;
