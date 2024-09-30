@@ -20,7 +20,7 @@ export async function GET({ params, url }) {
   let openPath = url.searchParams.get('path');
 
   if (action) {
-    console.log({ action, openPath });
+    // console.log({ action, openPath });
     let source = null;
 
     try {
