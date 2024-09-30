@@ -8,7 +8,7 @@
 import 'dotenv/config';
 import Typesense from 'typesense';
 import _ from 'lodash';
-import { delay } from './utils';
+import { delay } from '../utils';
 import printLine from 'printline';
 
 type Nullable<T> = T | null;

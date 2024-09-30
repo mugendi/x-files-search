@@ -9,7 +9,7 @@ import { DB } from './typesense';
 import sh from 'shorthash';
 import path from 'path';
 import { promises as fs } from 'fs';
-import { arrify, toTimestamp } from './typesense/utils';
+import { arrify, toTimestamp } from './utils';
 import { globbyStream } from 'globby';
 import { readChunk } from 'read-chunk';
 import mime from 'mime-types';
