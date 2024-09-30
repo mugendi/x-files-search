@@ -53,7 +53,7 @@
 			let resp = await fetch(url);
 			searchResults = await resp.json();
 			isBusy = false;
-			console.log(searchResults);
+			// console.log(searchResults);
 		}
 	}
 
@@ -70,8 +70,7 @@
 
 	$: if (isReady) {
 		let queryObj = { q: query, lang: selectedLang, sort: sortOrder };
-
-		console.log({ queryObj });
+		// console.log({ queryObj });
 		searchFiles(queryObj);
 	}
 
