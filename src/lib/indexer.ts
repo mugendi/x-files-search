@@ -29,7 +29,6 @@ const MAX_FILE_SIZE = numberOr(
   bytes('1MB')
 );
 
-console.log({ MAX_FILE_SIZE, BULK_DOC_COUNT });
 
 export class Indexer {
   isRunning = false;
@@ -149,6 +148,8 @@ export class Indexer {
 
         docs.push(doc);
 
+        // break
+
         // break;
       } catch (error) {
         console.error(error);
@@ -157,6 +158,7 @@ export class Indexer {
   }
 
   async indexFile(filePath: string, skipTypes: Array<string>) {
+
     // quickly check if file is utf8
     let buf = await readChunk(filePath, { length: 1024, startPosition: 1 });
     let type = (mime.lookup(filePath) || '').split('/').shift();
@@ -164,11 +166,12 @@ export class Indexer {
     let text;
     let source;
     let lang = 'Unknown';
+    let isUTF8 = isUtf8(buf);
 
     // get fike stat
     let stat = await fs.stat(filePath);
 
-    if (ext.length < 2 || !isUtf8(buf) || skipTypes.indexOf(type) > -1) {
+    if (ext.length < 2 || !isUTF8 || skipTypes.indexOf(type) > -1) {
       text = '_';
       source = '_';
     } else {
@@ -203,6 +206,8 @@ export class Indexer {
       modified: toTimestamp(stat.mtime),
       language: lang,
     };
+
+    // console.log(doc);
 
     return doc;
   }
