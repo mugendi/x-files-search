@@ -56,7 +56,7 @@ export async function GET({ params, url }) {
         searchParameters.filter_by = `language:=${language}`;
       }
 
-      console.log(searchParameters)
+      // console.log(searchParameters)
 
       let resp = await indexer.db.client
         .collections(['local_files'])
