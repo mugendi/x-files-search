@@ -126,7 +126,8 @@
 		searchFiles(queryObj);
 	}
 
-	$: console.log({ previewSource, previewSize, previewFileSize });
+	// $: console.log({ previewSource, previewSize, previewFileSize });
+
 </script>
 
 <svelte:head>

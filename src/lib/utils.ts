@@ -61,3 +61,10 @@ export function isLocalhost(hostname) {
 
   return localhosts.includes(hostname) || ipv4LocalhostRegex.test(hostname);
 }
+
+export function numberOr(val: any, defaultVal: number) {
+  let n = Number(val);
+
+  // if isNaN, return default
+  return n != n ? defaultVal : n;
+}

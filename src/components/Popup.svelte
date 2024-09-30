@@ -46,7 +46,7 @@
 		}, 500);
 	}
 
-	$: console.log({ dims });
+	//$: console.log({ dims });
 </script>
 
 {#if show}

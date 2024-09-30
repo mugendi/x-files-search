@@ -76,10 +76,7 @@ export class DB {
         }
       }
 
-
-      await this.client
-        .collections()
-        .create(schema)  
+      await this.client.collections().create(schema);
 
       console.error(`The collection "${name}" created!`);
       await delay(1000);
@@ -110,6 +107,7 @@ export class DB {
       }
       this.docsUpserted += resp.length;
 
+      
       printLine(`Upserted ${this.docsUpserted} documents.`);
 
       await delay(20);

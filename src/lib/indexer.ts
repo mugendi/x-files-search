@@ -10,7 +10,7 @@ import { DB } from './typesense';
 import sh from 'shorthash';
 import path from 'path';
 import { promises as fs } from 'fs';
-import { arrify, toTimestamp } from './utils';
+import { arrify, numberOr, toTimestamp } from './utils';
 import { globbyStream } from 'globby';
 import { readChunk } from 'read-chunk';
 import mime from 'mime-types';
@@ -22,7 +22,14 @@ import { promises as fs } from 'node:fs';
 // import languageEncoding from "detect-file-encoding-and-language";
 
 // const MAX_STRING_LENGTH = Math.ceil(NodeBuffer.constants.MAX_STRING_LENGTH / 5);
-const MAX_FILE_SIZE = bytes('1MB');
+
+const BULK_DOC_COUNT = numberOr(process.env.BULK_DOC_COUNT, 50);
+const MAX_FILE_SIZE = numberOr(
+  bytes(process.env.MAX_FILE_SIZE || '1MB'),
+  bytes('1MB')
+);
+
+console.log({ MAX_FILE_SIZE, BULK_DOC_COUNT });
 
 export class Indexer {
   isRunning = false;
@@ -60,7 +67,6 @@ export class Indexer {
 
     this.db.createCollection(filesShema, { drop });
     this.db.createCollection(dirsSchema, { drop });
-
   }
 
   async addDir(directory: string) {
@@ -107,8 +113,6 @@ export class Indexer {
     ignorePatterns: Array<string> | string,
     skipTypes: Array<string>
   ) {
-
-
     ignorePatterns = arrify(
       ignorePatterns || (process.env.IGNORE_PATTERNS || '').split(',')
     );
@@ -128,7 +132,7 @@ export class Indexer {
     let globStream = globbyStream(pattern, config);
 
     let docs = [];
-    let bulkDocs = 100;
+    let bulkDocs = BULK_DOC_COUNT;
     let doc;
 
     for await (const filePath of globStream) {
