@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatNumber, highlightMatch } from '$lib/typesense/utils';
+	import { formatDate, formatNumber, highlightMatch } from '$lib/utils';
 	import { fade } from 'svelte/transition';
 	import dirIcon from '../lib/images/icons/dir.svg?raw';
 	import fileIcon from '../lib/images/icons/file.svg?raw';
@@ -162,11 +162,19 @@
 					<div class="hit">
 						<div class="file">
 							<span class="file-path">
-								{#if highlight.source?.snippet}
-									{document.file}
-								{:else}
-									{@html highlightMatch(document.file, query)}
-								{/if}
+								<div>
+									<strong>File:</strong>
+									{#if highlight.source?.snippet}
+										{document.file}
+									{:else}
+										{@html highlightMatch(document.file, query)}
+									{/if}
+								</div>
+
+								<div>
+									<strong>Modified:</strong>
+									{formatDate(document.modified * 1000)}
+								</div>
 							</span>
 
 							<span>
@@ -232,7 +240,7 @@
 		gap: 0.15em;
 		margin: 20px 0 10px;
 		border: 1px solid #ddd;
-		background: #f8f8f8;
+		background: #fafafa;
 		padding: 10px;
 		border-radius: 10px;
 
@@ -291,23 +299,27 @@
 		.hits {
 			display: flex;
 			flex-direction: column;
-			gap: 1em;
+			gap: .5em;
+
 			.hit {
 				margin: 0;
 				padding: 10px;
 				background: #fff;
+				box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 				.file {
 					// border-bottom: 1px solid #ddd;
 					padding-bottom: 10px;
 					display: flex;
 					justify-content: space-between;
-					gap: 0.1em;
+					gap: 0.5em;
 
 					.file-path {
 						flex: 1;
 						text-wrap: wrap;
 						overflow-x: auto;
-						// font-size: .8em;
+						background: #f7f7f7;
+						padding: 5px;
+						border-radius: 10px;
 					}
 				}
 				pre {
