@@ -5,6 +5,7 @@
 	import fileIcon from '../lib/images/icons/file.svg?raw';
 	import sortIcon from '../lib/images/icons/sort.svg';
 	import loadingSVG from '../lib/images/loading.svg?raw';
+	import findImg from '../lib/images/icons/find.svg';
 	import logoImg from '../lib/images/logo-w-text.png';
 	import { onMount } from 'svelte';
 	import Pagination from '../components/Pagination.svelte';
@@ -58,13 +59,13 @@
 
 		if (queryObj.q && queryArr.length) {
 			let url = '/api/directory?' + queryArr.join('&');
-			console.log('URL', url);
+			// console.log('URL', url);
 			// searchResults = {};
 			isBusy = true;
 			let resp = await fetch(url);
 			searchResults = await resp.json();
 			isBusy = false;
-			// console.log(searchResults);
+			console.log(searchResults);
 		}
 	}
 
@@ -211,6 +212,14 @@
 		</div>
 
 		<Pagination totalItems={searchResults.found} {itemsPerPage} bind:currentPage></Pagination>
+	{:else if searchResults.found === 0}
+		<div class="flex-mid" style:margin="1em 0">
+			<img src={findImg} height="100px" />
+			<div>
+				<h4>No files match that query and/or filters</h4>
+				<p>We couldn't find a ting!! Please search more broadly!</p>
+			</div>
+		</div>
 	{/if}
 </div>
 
