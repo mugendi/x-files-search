@@ -29,7 +29,6 @@ const MAX_FILE_SIZE = numberOr(
   bytes('1MB')
 );
 
-
 export class Indexer {
   isRunning = false;
   db;
@@ -158,9 +157,8 @@ export class Indexer {
   }
 
   async indexFile(filePath: string, skipTypes: Array<string>) {
-
     // quickly check if file is utf8
-    let buf = await readChunk(filePath, { length: 1024, startPosition: 1 });
+    let buf = await readChunk(filePath, { length: 1024, startPosition: 0 });
     let type = (mime.lookup(filePath) || '').split('/').shift();
     let ext = path.extname(filePath).slice(1);
     let text;
@@ -178,7 +176,7 @@ export class Indexer {
       // read chunk
       buf = await readChunk(filePath, {
         length: MAX_FILE_SIZE,
-        startPosition: 1,
+        startPosition: 0,
       });
 
       try {

@@ -38,7 +38,7 @@ export async function GET({ params, url }) {
           // data = await fs.readFile(openPath, utf8);
           let buf = await readChunk(openPath, {
             length: MAX_FILE_SIZE,
-            startPosition: 1,
+            startPosition: 0,
           });
 
           source = new TextDecoder().decode(buf);
