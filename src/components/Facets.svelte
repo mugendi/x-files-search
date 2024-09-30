@@ -36,7 +36,7 @@
 				{/each}
 
 				{#if selectedLang && !asStats}
-					<span> &nbsp; 👈 Click to clear <strong>"{selectedLang}"</strong> filter</span>
+					<span> &nbsp; 👈 Click to clear filter</span>
 				{/if}
 			</div>
 		</div>
