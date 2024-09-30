@@ -85,19 +85,9 @@
 <div class="text-column">
 	<!-- <h1>Search Your Files</h1> -->
 
-	<!-- <form action="/api/directory" method="POST" use:enhance>
-		<div class="field">
-			<input
-				type="text"
-				name="directory"
-				required
-				value="/media/mugz/24c84459-2953-448a-8e7d-c1d3e587fbaa1/Projects"
-			/>
-			<button>Add Dir</button>
-		</div>
-	</form> -->
 
-	{#if !query}
+
+	{#if !searchResults.hits}
 		<div class="page-logo" transition:fade={{ delay: 250, duration: 300 }}>
 			<img src={logoImg} alt="" />
 		</div>
@@ -107,14 +97,14 @@
 		<input
 			type="text"
 			on:input={search}
-			placeholder="Search your local files"
+			placeholder={isReady ? 'Search your local files' : 'Getting Search Ready...'}
 			bind:this={searchEl}
-			disabled={!isReady}
+			disabled={!isReady || isBusy}
 		/>
 		<!-- <button>Search</button> -->
 
-		{#if isBusy}
-			<span class="loading" transition:fade={{ delay: 250, duration: 300 }}>
+		{#if isBusy || !isReady}
+			<span class="loading" transition:fade={{ delay: 0, duration: 200 }}>
 				{@html loadingSVG}
 			</span>
 		{/if}
