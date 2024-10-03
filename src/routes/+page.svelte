@@ -14,6 +14,7 @@
 	import Popup from '../components/Popup.svelte';
 	import bytes from 'bytes';
 	import Facets from '../components/Facets.svelte';
+	import ms from 'ms';
 
 	// let timeoutInt: number;
 	let searchResults: object = {};
@@ -54,7 +55,7 @@
 
 		if ((queryObj.q && queryArr.length) || selectedLang || searchResults.hits) {
 			let url = '/api/directory?' + queryArr.join('&');
-			console.log('URL', url);
+			// console.log('URL', url);
 			// searchResults = {};
 			isBusy = true;
 			let resp = await fetch(url);
@@ -77,18 +78,25 @@
 		preview.source = null;
 		preview.size = null;
 
-		let url = '/api/open?action=' + action + '&path=' + path;
+		let url = '/api/open?action=' + action + '&path=' + encodeURIComponent(path);
 		let resp = await fetch(url);
 		let respData = await resp.json();
 
 		isBusy = false;
+
+		let language = 'plaintext';
+
+		if (doc.language !== 'Unknown') {
+			language = doc.language.toLowerCase();
+			language = langSubsets(language) || language;
+		}
 
 		// show source
 		if (respData.source) {
 			preview.size = respData.previewSize || respData.fileSize;
 			preview.file = doc.file;
 			preview.fileSize = respData.fileSize;
-			preview.language = doc.language == 'Unknown' ? null : doc.language;
+			preview.language = language;
 			preview.source = respData.source;
 		}
 
@@ -112,6 +120,251 @@
 		isLocal = isLocalhost(window.location.hostname);
 		getStats();
 	});
+
+	async function loadLanguage(lang) {
+		const supportedLangs = [
+			'1c',
+			'abnf',
+			'accesslog',
+			'actionscript',
+			'ada',
+			'angelscript',
+			'apache',
+			'applescript',
+			'arcade',
+			'arduino',
+			'armasm',
+			'asciidoc',
+			'aspectj',
+			'autohotkey',
+			'autoit',
+			'avrasm',
+			'awk',
+			'axapta',
+			'bash',
+			'basic',
+			'bnf',
+			'brainfuck',
+			'c',
+			'cal',
+			'capnproto',
+			'ceylon',
+			'clean',
+			'clojure',
+			'clojure-repl',
+			'cmake',
+			'coffeescript',
+			'coq',
+			'cos',
+			'cpp',
+			'crmsh',
+			'crystal',
+			'csharp',
+			'csp',
+			'css',
+			'd',
+			'dart',
+			'delphi',
+			'diff',
+			'django',
+			'dns',
+			'dockerfile',
+			'dos',
+			'dsconfig',
+			'dts',
+			'dust',
+			'ebnf',
+			'elixir',
+			'elm',
+			'erb',
+			'erlang',
+			'erlang-repl',
+			'excel',
+			'fix',
+			'flix',
+			'fortran',
+			'fsharp',
+			'gams',
+			'gauss',
+			'gcode',
+			'gherkin',
+			'glsl',
+			'gml',
+			'go',
+			'golo',
+			'gradle',
+			'graphql',
+			'groovy',
+			'haml',
+			'handlebars',
+			'haskell',
+			'haxe',
+			'hsp',
+			'http',
+			'hy',
+			'inform7',
+			'ini',
+			'irpf90',
+			'isbl',
+			'java',
+			'javascript',
+			'jboss-cli',
+			'json',
+			'julia',
+			'julia-repl',
+			'kotlin',
+			'lasso',
+			'latex',
+			'ldif',
+			'leaf',
+			'less',
+			'lisp',
+			'livecodeserver',
+			'livescript',
+			'llvm',
+			'lsl',
+			'lua',
+			'makefile',
+			'markdown',
+			'mathematica',
+			'matlab',
+			'maxima',
+			'mel',
+			'mercury',
+			'mipsasm',
+			'mizar',
+			'mojolicious',
+			'monkey',
+			'moonscript',
+			'n1ql',
+			'nestedtext',
+			'nginx',
+			'nim',
+			'nix',
+			'node-repl',
+			'nsis',
+			'objectivec',
+			'ocaml',
+			'openscad',
+			'oxygene',
+			'parser3',
+			'perl',
+			'pf',
+			'pgsql',
+			'php',
+			'php-template',
+			'plaintext',
+			'pony',
+			'powershell',
+			'processing',
+			'profile',
+			'prolog',
+			'properties',
+			'protobuf',
+			'puppet',
+			'purebasic',
+			'python',
+			'python-repl',
+			'q',
+			'qml',
+			'r',
+			'reasonml',
+			'rib',
+			'roboconf',
+			'routeros',
+			'rsl',
+			'ruby',
+			'ruleslanguage',
+			'rust',
+			'sas',
+			'scala',
+			'scheme',
+			'scilab',
+			'scss',
+			'shell',
+			'smali',
+			'smalltalk',
+			'sml',
+			'sqf',
+			'sql',
+			'stan',
+			'stata',
+			'step21',
+			'stylus',
+			'subunit',
+			'swift',
+			'taggerscript',
+			'tap',
+			'tcl',
+			'thrift',
+			'tp',
+			'twig',
+			'typescript',
+			'vala',
+			'vbnet',
+			'vbscript',
+			'vbscript-html',
+			'verilog',
+			'vhdl',
+			'vim',
+			'wasm',
+			'wren',
+			'x86asm',
+			'xl',
+			'xml',
+			'xquery',
+			'yaml',
+			'zephir'
+		];
+
+		if (supportedLangs[lang]) {
+			const url = `https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/${lang}.min.js`;
+			await import(url);
+		}
+	}
+
+	function langSubsets(lang) {
+		const languageSubsets = {
+			svelte: { subset: 'svelte', language: 'HTML' },
+			vue: { subset: 'vue', language: 'HTML' },
+			angular: { subset: 'angular', language: 'HTML' },
+			react: { subset: 'react', language: 'JavaScript' },
+			jsx: { subset: 'jsx', language: 'JavaScript' },
+			tsx: { subset: 'tsx', language: 'TypeScript' },
+			scss: { subset: 'scss', language: 'CSS' },
+			less: { subset: 'less', language: 'CSS' },
+			yaml: { subset: 'yaml', language: 'YAML' },
+			markdown: { subset: 'markdown', language: 'Markdown' },
+			objectivec: { subset: 'objectivec', language: 'Objective-C' },
+			shell: { subset: 'shell', language: 'Bash' },
+			dockerfile: { subset: 'dockerfile', language: 'Dockerfile' },
+			graphql: { subset: 'graphql', language: 'GraphQL' },
+			plsql: { subset: 'plsql', language: 'PL/SQL' },
+			elixir: { subset: 'elixir', language: 'Elixir' },
+			erlang: { subset: 'erlang', language: 'Erlang' },
+			fortran: { subset: 'fortran', language: 'Fortran' },
+			cobol: { subset: 'cobol', language: 'COBOL' },
+			matlab: { subset: 'matlab', language: 'MATLAB' },
+			scheme: { subset: 'scheme', language: 'Scheme' },
+			clojure: { subset: 'clojure', language: 'Clojure' },
+			coffeescript: { subset: 'coffeescript', language: 'CoffeeScript' },
+			rmarkdown: { subset: 'rmarkdown', language: 'RMarkdown' }
+		};
+
+		let langObj: object = languageSubsets[lang] || {};
+
+		return langObj.language ? langObj.language.toLowerCase() : null;
+	}
+
+	async function highlightSource(lang) {
+		if (window.hljs) {
+			window.hljs.highlightAll();
+			await loadLanguage(lang);
+		}
+		if (window.hljs.initLineNumbersOnLoad) {
+			window.hljs.initLineNumbersOnLoad();
+		}
+	}
 
 	$: if (isReady) {
 		let queryObj = {
@@ -143,9 +396,8 @@
 		src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"
 	></script>
 
-	<!-- and it's easy to individually load additional languages -->
 	<script
-		src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/languages/go.min.js"
+		src="//cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"
 	></script>
 </svelte:head>
 
@@ -192,9 +444,8 @@
 			<div class="found">
 				<div class="results-stats">
 					<h4>
-						{formatNumber(searchResults.found)} Total Results Found / {formatNumber(
-							searchResults.out_of
-						)} indexed.
+						{formatNumber(searchResults.found)} / {formatNumber(searchResults.out_of)} Results Found
+						in {ms(searchResults.search_time_ms, { long: true })}
 					</h4>
 
 					<div class="sort small">
@@ -203,10 +454,10 @@
 							<span>SORT BY</span>
 						</div>
 						<select bind:value={sortOrder}>
-							<option value="modified:desc">Newest First</option>
-							<option value="modified:asc">Oldest First</option>
-							<option value="size:asc">Smallest First</option>
-							<option value="size:desc">Largest First</option>
+							<option value="modified:desc">Newest</option>
+							<option value="modified:asc">Oldest</option>
+							<option value="size:asc">Smallest</option>
+							<option value="size:desc">Largest</option>
 						</select>
 					</div>
 				</div>
@@ -230,9 +481,12 @@
 
 								<div>
 									<strong>Size:</strong>
-									{bytes(document.size)} |
-									<strong>Language:</strong>
-									{document.language} |
+									{bytes(document.size)}
+									{#if document.language !== 'Unknown'}
+										| <strong>Language:</strong>
+										{document.language}
+									{/if}
+									|
 									<strong>Modified:</strong>
 									{formatDate(document.modified * 1000)}
 								</div>
@@ -245,14 +499,16 @@
 							</span>
 
 							<div>
-								<button
-									class="small"
-									on:click={() => open('view-source', document)}
-									title="View Source"
-									disabled={isBusy}
-								>
-									{@html codeIcon}
-								</button>
+								{#if document.utf8}
+									<button
+										class="small"
+										on:click={() => open('view-source', document)}
+										title="View Source"
+										disabled={isBusy}
+									>
+										{@html codeIcon}
+									</button>
+								{/if}
 								{#if isLocal}
 									<button
 										class="small"
@@ -295,7 +551,7 @@
 </div>
 
 <!-- Code Preview Popup -->
-<Popup show={!!preview.source} onShow={() => window.hljs.highlightAll()}>
+<Popup show={!!preview.source} onShow={() => highlightSource(preview.language)}>
 	<div>
 		{#if preview.size}
 			<div class="small preview-stats">
@@ -305,10 +561,10 @@
 		{/if}
 
 		<pre>
-			<code class="language-{preview.language || 'text'}">
-				{@html preview.source}
+			<code class="language-{preview.language || 'plaintext'}">
+				{preview.source.trim()}
 			</code>
-	</pre>
+		</pre>
 	</div>
 </Popup>
 
@@ -330,6 +586,7 @@
 		border-top: 1px solid #eee;
 		text-wrap: wrap;
 		margin: 0;
+		padding: 0;
 	}
 	.flex-mid {
 		display: flex;
@@ -425,5 +682,30 @@
 		color: #777;
 		font-size: 0.95em;
 		font-weight: thin;
+	}
+
+	code {
+		/* for block of numbers */
+		:global(.hljs-ln-numbers) {
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			-khtml-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+
+			text-align: center;
+			color: #ccc;
+			border-right: 1px solid #ccc;
+			vertical-align: top;
+			padding-right: 5px;
+
+			/* your custom style here */
+		}
+
+		/* for block of code */
+		:global(.hljs-ln-code) {
+			padding-left: 10px;
+		}
 	}
 </style>
