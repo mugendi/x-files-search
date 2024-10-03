@@ -8,9 +8,6 @@
 
 import { Indexer } from '$lib/indexer';
 import { json, error } from '@sveltejs/kit';
-import { promises as fs } from 'fs';
-import path from 'path';
-import util from 'util';
 
 const indexer = new Indexer();
 

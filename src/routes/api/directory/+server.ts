@@ -36,6 +36,7 @@ export async function GET({ params, url }) {
         'ext',
         'file',
         'size',
+        'utf8',
         // 'text',
         'created',
         'modified',
@@ -83,13 +84,10 @@ export async function POST(event) {
     error(404, `Directory ${directory} does not exist!`);
   });
 
-  console.log({ directory });
 
   await indexer.addDir(directory);
 
-  setTimeout(() => {
-    indexer.indexFiles();
-  }, 1000);
+  indexer.indexFiles();
 
   // return success
   return new Response(JSON.stringify({ success: true }), {

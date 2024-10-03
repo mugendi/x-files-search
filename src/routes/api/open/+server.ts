@@ -16,11 +16,14 @@ import bytes from 'bytes';
 const MAX_FILE_SIZE = bytes('1MB');
 
 export async function GET({ params, url }) {
+
   let action = url.searchParams.get('action');
-  let openPath = url.searchParams.get('path');
+  let openPath =  url.searchParams.get('path');
+
 
   if (action) {
     // console.log({ action, openPath });
+
     let source = null;
 
     try {
@@ -48,6 +51,8 @@ export async function GET({ params, url }) {
         default:
           break;
       }
+
+      // console.log({source});
     } catch (e) {
       console.error(e);
       error(500, 'Failed to open ' + path);
