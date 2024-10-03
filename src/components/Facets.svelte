@@ -7,6 +7,7 @@
 
 <script lang="ts">
 	import { formatNumber } from '$lib/utils';
+	import { fade } from 'svelte/transition';
 
 	export let results = {};
 	export let selectedLang: string | null = null;
@@ -21,9 +22,10 @@
 	}
 </script>
 
-{#if results && results.facet_counts}
+{#if results && results.facet_counts && results.out_of}
 	<div class:stats={asStats}>
-		{#if asStats}
+
+		{#if asStats && results.out_of}
 			<h4>{formatNumber(results.out_of)} Files indexed</h4>
 		{/if}
 
@@ -36,7 +38,7 @@
 				{/each}
 
 				{#if selectedLang && !asStats}
-					<span> &nbsp; 👈 Click to clear filter</span>
+					<span transition:fade={{ delay: 500, duration: 350 }}> &nbsp; 👈 Click to clear filter</span>
 				{/if}
 			</div>
 		</div>
