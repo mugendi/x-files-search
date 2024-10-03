@@ -40,7 +40,6 @@
 
 	$: if (popupElement && show) {
 		if (updateContents) null;
-
 		setTimeout(() => {
 			dims = popupElement.getBoundingClientRect();
 		}, 500);
