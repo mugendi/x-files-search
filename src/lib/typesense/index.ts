@@ -76,15 +76,14 @@ export class DB {
         }
       }
 
+      await delay(1000);
       await this.client.collections().create(schema);
-
       console.error(`The collection "${name}" created!`);
       await delay(1000);
 
       // console.log(schema);
     } catch (error) {
-      console.log('ERROR');
-      console.error(error);
+      // console.error(error);
     }
   }
 
@@ -107,7 +106,6 @@ export class DB {
       }
       this.docsUpserted += resp.length;
 
-      
       printLine(`Upserted ${this.docsUpserted} documents.`);
 
       await delay(20);
@@ -141,7 +139,6 @@ export class DB {
     return resp;
   }
 
-
   async stats(
     collections: Array<String> = [],
     q: string = '',
@@ -166,5 +163,4 @@ export class DB {
 
     return resp;
   }
-  
 }
