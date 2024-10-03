@@ -10,14 +10,14 @@ import { DB } from './typesense';
 import sh from 'shorthash';
 import path from 'path';
 import { promises as fs } from 'fs';
-import { arrify, numberOr, toTimestamp } from './utils';
+import { arrify, delay, numberOr, toTimestamp } from './utils';
 import { globbyStream } from 'globby';
 import { readChunk } from 'read-chunk';
 import mime from 'mime-types';
 import isUtf8 from 'isutf8';
 import _ from 'lodash';
 import bytes from 'bytes';
-import detect from 'language-detect';
+import codeDetector from 'code-detector';
 import { promises as fs } from 'node:fs';
 // import languageEncoding from "detect-file-encoding-and-language";
 
@@ -30,10 +30,19 @@ const MAX_FILE_SIZE = numberOr(
 );
 
 export class Indexer {
-  isRunning = false;
+  isRunning: boolean = false;
+  isReady: boolean = false;
   db;
+  opts: object;
 
   constructor({ drop = false } = {}) {
+    this.opts = { drop };
+    this.init();
+  }
+
+  async init() {
+    if (this.isReady) return;
+
     this.db = new DB();
 
     let filesShema = {
@@ -46,6 +55,7 @@ export class Indexer {
         { name: 'size', type: 'int32' },
         { name: 'created', type: 'int64' },
         { name: 'modified', type: 'int64' },
+        { name: 'utf8', type: 'bool' },
         // facets
         { name: 'language', type: 'string', facet: true },
         { name: 'ext', type: 'string', facet: true },
@@ -59,15 +69,21 @@ export class Indexer {
       name: 'local_directories',
       fields: [
         { name: 'directory', type: 'string' },
+        // { name: 'path', type: 'string' },
         { name: '.*', type: 'auto' },
       ],
     };
 
-    this.db.createCollection(filesShema, { drop });
-    this.db.createCollection(dirsSchema, { drop });
+    await this.db.createCollection(filesShema, this.opts);
+    await this.db.createCollection(dirsSchema, this.opts);
+
+    await delay(1000);
+    this.isReady = true;
   }
 
   async addDir(directory: string) {
+    await this.init();
+
     // console.log({directory});
     await fs.access(directory);
 
@@ -86,6 +102,7 @@ export class Indexer {
 
   async indexFiles() {
     if (this.isRunning) return;
+    await this.init();
 
     let resp = await this.db.search(['local_directories'], '', {
       query_by: ['directory'],
@@ -106,7 +123,7 @@ export class Indexer {
     this.isRunning = false;
   }
 
-  async globFiles(
+  private async globFiles(
     directory: string,
     ignorePatterns: Array<string> | string,
     skipTypes: Array<string>
@@ -147,8 +164,6 @@ export class Indexer {
 
         docs.push(doc);
 
-        // break
-
         // break;
       } catch (error) {
         console.error(error);
@@ -156,56 +171,46 @@ export class Indexer {
     }
   }
 
-  async indexFile(filePath: string, skipTypes: Array<string>) {
+  private async indexFile(filePath: string, skipTypes: Array<string>) {
     // quickly check if file is utf8
-    let buf = await readChunk(filePath, { length: 1024, startPosition: 0 });
-    let type = (mime.lookup(filePath) || '').split('/').shift();
-    let ext = path.extname(filePath).slice(1);
-    let text;
-    let source;
+    const buf = await readChunk(filePath, {
+      length: MAX_FILE_SIZE,
+      startPosition: 0,
+    });
+    const type = (mime.lookup(filePath) || '').split('/').shift();
+    const ext = path.extname(filePath).slice(1);
+    const stat = await fs.stat(filePath);
+    const isUTF8 = isUtf8(buf);
+    const filePathArr = _.compact(filePath.split(path.sep));
+
+    let text = '_';
+    let source = '_';
     let lang = 'Unknown';
-    let isUTF8 = isUtf8(buf);
 
-    // get fike stat
-    let stat = await fs.stat(filePath);
-
-    if (ext.length < 2 || !isUTF8 || skipTypes.indexOf(type) > -1) {
-      text = '_';
-      source = '_';
-    } else {
-      // read chunk
-      buf = await readChunk(filePath, {
-        length: MAX_FILE_SIZE,
-        startPosition: 0,
-      });
-
-      try {
-        lang = detect.sync(filePath);
-      } catch (error) {}
-
+    // ig utf8.
+    if (isUTF8 && skipTypes.indexOf(type) == -1) {
       source = new TextDecoder().decode(buf);
       text = _.uniq(source.match(/([\w]+)/gi)).join(' ');
+      lang = await codeDetector(filePath);
     }
 
-    const filePathArr = _.compact(filePath.split(path.sep));
     // Do we need this?
     // let langEncoding = await languageEncoding(filePath);
-    // console.log(langEncoding);
+    // console.log({ isUTF8 });
 
     let doc = {
       id: sh.unique(filePath),
       text,
       source,
       ext,
+      utf8: isUTF8,
       file: filePath,
       path: filePathArr,
       size: stat.size,
       created: toTimestamp(stat.birthtime),
       modified: toTimestamp(stat.mtime),
-      language: lang,
+      language: lang || 'Unknown',
     };
-
-    // console.log(doc);
 
     return doc;
   }
