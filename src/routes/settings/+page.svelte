@@ -70,15 +70,17 @@
 			{#each directories as { document }}
 				<div>
 					<span>{document.directory} &nbsp;</span>
-					<button on:click={deleteDir(document.id)}>
-						{@html deleteIcon}
-					</button>
+					<div>
+						<button on:click={deleteDir(document.id)}>
+							{@html deleteIcon}
+						</button>
+					</div>
 				</div>
 			{/each}
 		</div>
 
 		<br />
-	
+
 		<h4>Add New</h4>
 		<form method="POST" action="/api/directory" on:submit|preventDefault={handleAddDirectory}>
 			<div class="field">
@@ -103,7 +105,6 @@
 		<button title="Index Files" on:click={indexFiles} disabled={directories.length === 0}>
 			Index Files
 		</button>
-		
 	</div>
 </div>
 
