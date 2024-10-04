@@ -11,9 +11,10 @@
 	</main>
 
 	<footer>
-		<p><a href="#">X-FiseSearch</a> | Search any file on your system</p>
+		<p><a href="#">X-FileSearch</a> | Search any file on your system</p>
 	</footer>
 </div>
+
 
 <style>
 	.app {
