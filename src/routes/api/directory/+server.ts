@@ -9,8 +9,7 @@
 import { Indexer } from '$lib/indexer';
 import { json, error } from '@sveltejs/kit';
 import { promises as fs } from 'fs';
-import path from 'path';
-import util from 'util';
+
 
 const indexer = new Indexer();
 
@@ -87,7 +86,7 @@ export async function POST(event) {
 
   await indexer.addDir(directory);
 
-  indexer.indexFiles();
+ 
 
   // return success
   return new Response(JSON.stringify({ success: true }), {

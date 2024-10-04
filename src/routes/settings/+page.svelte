@@ -11,12 +11,14 @@
 		let resp = await fetch('/api/settings');
 		let respData = await resp.json();
 
-		directories = respData.hits;
+		// console.log(respData);
+
+		directories = respData.hits || [];
 	}
 
 	async function deleteDir(id) {
 		// console.log({ id });
-		alert('Delete not yet fully implemented...')
+		alert('Delete not yet fully implemented...');
 	}
 
 	async function handleAddDirectory(event) {
@@ -39,6 +41,13 @@
 		}
 	}
 
+	async function indexFiles() {
+		let resp = await fetch('/api/index');
+		let respData = await resp.json();
+
+		// console.log(respData);
+	}
+
 	onMount(() => {
 		getDirectories();
 	});
@@ -54,39 +63,47 @@
 <div class="text-column">
 	<!-- <p>Coming Soon</p> -->
 
-	<div>
-		<div id="directories">
-			<h1>Directories</h1>
+	<div id="directories">
+		<h1>Directories</h1>
 
-			<div class="border">
-				{#each directories as { document }}
-					<div>
-						<span>{document.directory} &nbsp;</span>
-						<button on:click={deleteDir(document.id)}>
-							{@html deleteIcon}
-						</button>
-					</div>
-				{/each}
-			</div>
-
-			<br />
-			<hr />
-			<h4>Add New</h4>
-			<form method="POST" action="/api/directory" on:submit|preventDefault={handleAddDirectory}>
-				<div class="field">
-					<input type="text" name="directory" required />
-					<button title="Add Directory">
-						{@html addIcon}
+		<div class="border">
+			{#each directories as { document }}
+				<div>
+					<span>{document.directory} &nbsp;</span>
+					<button on:click={deleteDir(document.id)}>
+						{@html deleteIcon}
 					</button>
 				</div>
-
-				{#if submitError}
-					<div class="error">
-						{submitError}
-					</div>
-				{/if}
-			</form>
+			{/each}
 		</div>
+
+		<br />
+	
+		<h4>Add New</h4>
+		<form method="POST" action="/api/directory" on:submit|preventDefault={handleAddDirectory}>
+			<div class="field">
+				<input type="text" name="directory" required />
+				<button title="Add Directory">
+					{@html addIcon}
+				</button>
+			</div>
+
+			{#if submitError}
+				<div class="error">
+					{submitError}
+				</div>
+			{/if}
+		</form>
+	</div>
+
+	<br />
+	<div class="border field">
+		<h4>Click 👉 to start indexing....</h4>
+
+		<button title="Index Files" on:click={indexFiles} disabled={directories.length === 0}>
+			Index Files
+		</button>
+		
 	</div>
 </div>
 
@@ -105,10 +122,10 @@
 		justify-content: space-between;
 		background: #fafafa;
 
-		div{
+		div {
 			display: flex;
 			margin: 10px 0;
-			gap: .25em;
+			gap: 0.25em;
 			padding: 10px 0;
 			border-bottom: 1px solid #ddd;
 		}
