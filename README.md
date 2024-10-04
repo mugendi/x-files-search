@@ -4,7 +4,7 @@
 
 ![Logo](/src/lib/images/logo-w-text.png)
 
-[![GitHub license](https://img.shields.io/github/license/mugendi/x-files-search.svg)](https://github.com/mugendi/x-files-search/blob/main/LICENSE)
+
 [![GitHub stars](https://img.shields.io/github/stars/mugendi/x-files-search.svg)](https://github.com/mugendi/x-files-search/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/mugendi/x-files-search.svg)](https://github.com/mugendi/x-files-search/issues)
 [![GitHub forks](https://img.shields.io/github/forks/mugendi/x-files-search.svg)](https://github.com/mugendi/x-files-search/network)
