@@ -12,8 +12,6 @@ import { json, error } from '@sveltejs/kit';
 const indexer = new Indexer();
 
 export async function GET({ params, url }) {
- 
-  // while (true) {
   try {
     let searchParameters = {
       q: '',
