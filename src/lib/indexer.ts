@@ -18,7 +18,7 @@ import isUtf8 from 'isutf8';
 import _ from 'lodash';
 import bytes from 'bytes';
 import codeDetector from 'code-detector';
-import { promises as fs } from 'node:fs';
+
 // import languageEncoding from "detect-file-encoding-and-language";
 
 // const MAX_STRING_LENGTH = Math.ceil(NodeBuffer.constants.MAX_STRING_LENGTH / 5);
